@@ -5,11 +5,11 @@ import codecs, io, json, os, sys, re
 from .utils import flatten_list
 
 class ChemInventory:
-    def __init__(self, email, password):
-        self. email = email
-        self.password = password
+    def __init__(self, email=None, password=None):
+        self. email = str(os.environ.get('CHEMINVENTORY_EMAIL', email))
+        self.password = str(os.environ.get('CHEMINVENTORY_PASS', password))
         self.jwt = None
-        self._login(email, password)
+        self._login(self.email, self.password)
         #I am assuming that first group is the list is always your group. 
         # Need to verify this
         locs = self.retrieve_locations()
@@ -68,7 +68,7 @@ class ChemInventory:
 
         raise NotImplementedError()
 
-    def move_containers(self):
+    def move_containers(self, barcode, location_id):
         raise NotImplementedError()
 
         
