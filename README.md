@@ -1,7 +1,7 @@
 ChemInventory
 =================
 
-![pypiBadge](https://img.shields.io/pypi/v/ChemInventory)
+![pypiBadge](https://badge.fury.io/py/cheminventory.svg)
 
 
 An unofficial python SDK for [ChemInventory](https://www.cheminventory.net/)
@@ -19,7 +19,7 @@ ci.search('75-65-0')
 Installation
 ------------
 
-`pip install cheminventory``
+`pip install cheminventory`
 
 
 Authors
