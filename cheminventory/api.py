@@ -1,9 +1,8 @@
-from requests import Session
 import requests
-import json
+import pandas
 from contextlib import closing
-import codecs
-import csv
+import codecs, io, json, os, sys
+from .utils import flatten_list
 
 class ChemInventory:
     def __init__(self, email, password):
@@ -41,60 +40,37 @@ class ChemInventory:
         resp = self._post('general-retrievelocations', 'locations')
         return resp
     
-    def download_location_containers(self, location: str, file_name=None):
+    def download_location_containers(self, location: str, file_path=''):
         """Download a csv file with all containers in a location"""
         loc_data = self.retrieve_locations()
         loc_id = None
+
         for loc in loc_data['groupinfo']:
             if loc['name'] == location:
                 loc_id = loc['id']
             else:
                 continue
         if not loc_id: raise ValueError(f"Location {location} is not in the database.")
+        
+        cupboard_list = flatten_list(list(loc_data['data'][loc_id]))
 
-        if loc_data['data'][loc_id] is list:
-            cupboard_list = loc_data['data'][loc_id]
-        else:
-            my_lists = loc_data['data'][loc_id]
-            cupboard_list = []
-            for el in my_lists:
-                cupboard_list += el
-
-        if file_name:
-            path = f"{file_name.rstrip('.csv')}.csv"
-
+        
+        df = None
         for cupboard in cupboard_list:
-            csv_output = self._download_cupboard_data(cupboard['id'], path)
-            yield csv_output
-
-    def _download_cupboard_data(self, cupboard_id, file_path=None):
-        containers = self._post('locations-getcontainers', 'locations', data={'location': cupboard_id})
-        container_ids = [container['id'] for container in containers['results']]
-        resp = self._post('general-exportbycontainerid', 'locations', data = {'container_ids': container_ids})
-        link = resp['link']
-        csv_output = None
+            cupboard_data = self._download_cupboard_data(cupboard['id'], file_path)
+            try:
+                df = df.append(cupboard_data, ignore_index=True)
+            except AttributeError:
+                df = cupboard_data
         if file_path:
-            csv_output = self._download_csv(link, csv_output, file_path)
-        else:
-            csv_output = self._download_csv(link, csv_output)
-        return csv_output
+            file_path = f"{file_path.rstrip('.csv')}.csv"
+            df.to_csv(file_path, index=False)
+        return df
 
-    def _download_csv(self, link, save_path=None):
-        headers = {
-            "Host": "chemicalinventory-generatedfiles.s3.eu-west-1.amazonaws.com",
-            "Referer": "https://access.cheminventory.net/locations.php",
-            'cookie': f"jwt={self.jwt}"
-        } 
-        csv_output = None
-        with closing(requests.get(link, headers=headers, stream=True)) as r:
-            r.raise_for_status()
-            l = r.iter_lines()
-            if save_path:
-                with open(save_path, 'a') as f:
-                    writer = csv.writer(f)
-                    writer.writerow(l)
-            csv_output = csv.reader(l)
-        return csv_output
+    def _download_cupboard_data(self, cupboard_id, file_path=''):
+        containers = self._post('locations-getcontainers', 'locations', data={'location': cupboard_id})
+        df = pandas.DataFrame(containers['results'])
+        return df
         
     def search(self, query):
         raise NotImplementedError()
@@ -105,4 +81,4 @@ class ChemInventory:
 
     def move_containers(self):
         raise NotImplementedError()
-    
+

@@ -4,4 +4,4 @@ __version__ = '0.1.0'
 __author__ = 'Kobi Felton <kobi.c.f@gmail.com>'
 __all__ = []
 
-from api import ChemInventory
+from .api import ChemInventory
