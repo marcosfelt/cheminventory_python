@@ -41,7 +41,7 @@ class ChemInventory:
         resp = self._post('general-retrievelocations', 'locations')
         return resp
     
-    def download_location_containers(self, location: str, file_name):
+    def download_location_containers(self, location: str, file_name=None):
         """Download a csv file with all containers in a location"""
         loc_data = self.retrieve_locations()
         loc_id = None
@@ -60,29 +60,41 @@ class ChemInventory:
             for el in my_lists:
                 cupboard_list += el
 
-        for cupboard in cupboard_list:
+        if file_name:
             path = f"{file_name.rstrip('.csv')}.csv"
-            self._download_cupboard_data(cupboard['id'], path)
 
-    def _download_cupboard_data(self, cupboard_id, save_path):
+        for cupboard in cupboard_list:
+            csv_output = self._download_cupboard_data(cupboard['id'], path)
+            yield csv_output
+
+    def _download_cupboard_data(self, cupboard_id, file_path=None):
         containers = self._post('locations-getcontainers', 'locations', data={'location': cupboard_id})
         container_ids = [container['id'] for container in containers['results']]
         resp = self._post('general-exportbycontainerid', 'locations', data = {'container_ids': container_ids})
         link = resp['link']
-        self._download_csv(link, save_path)
-        return 
+        csv_output = None
+        if file_path:
+            csv_output = self._download_csv(link, csv_output, file_path)
+        else:
+            csv_output = self._download_csv(link, csv_output)
+        return csv_output
 
-    def _download_csv(self, link, save_path):
+    def _download_csv(self, link, save_path=None):
         headers = {
             "Host": "chemicalinventory-generatedfiles.s3.eu-west-1.amazonaws.com",
             "Referer": "https://access.cheminventory.net/locations.php",
             'cookie': f"jwt={self.jwt}"
         } 
-        with closing(requests.get(link, headers=headers, stream=True)) as r, open(save_path, 'a') as f:
+        csv_output = None
+        with closing(requests.get(link, headers=headers, stream=True)) as r:
             r.raise_for_status()
             l = r.iter_lines()
-            writer = csv.writer(f)
-            writer.writerow(l)
+            if save_path:
+                with open(save_path, 'a') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(l)
+            csv_output = csv.reader(l)
+        return csv_output
         
     def search(self, query):
         raise NotImplementedError()
@@ -91,6 +103,6 @@ class ChemInventory:
     def add_container(self):
         raise NotImplementedError()
 
-    def move_container(self):
+    def move_containers(self):
         raise NotImplementedError()
     
