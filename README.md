@@ -19,7 +19,7 @@ ci.search('75-65-0')
 Installation
 ------------
 
-`pip install cheminventory``
+`pip install cheminventory`
 
 
 Authors
