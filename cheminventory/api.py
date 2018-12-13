@@ -1,3 +1,4 @@
+from .objects import Container, Location
 import requests
 import pandas
 from contextlib import closing
@@ -10,7 +11,7 @@ class ChemInventory:
         self.password = str(os.environ.get('CHEMINVENTORY_PASS', password))
         self.jwt = None
         self._login(self.email, self.password)
-        #I am assuming that first group is the list is always your group. 
+        #I am assuming that first group in the list is always your group. 
         # Need to verify this
         locs = self.retrieve_locations()
         self.groupid = locs['groupinfo'][0]['id']
@@ -62,10 +63,31 @@ class ChemInventory:
         }
         
         r = self._post('search-search', referer_path='search', data=data)
-        return r['searchresults']['containers']
+        
+        #return a list of container objects
+        if r['searchresults']['containers']:
+            containers = []
+            for container in r['searchresults']['containers']:
+                loc = Location(container.get('location'))
+                ct = Container(
+                    inventory_id = container.get('id'), 
+                    compound_id = container.get('sid'),
+                    name=container.get('containername'),
+                    location=loc,
+                    size=container.get('size'),
+                    smiles=container.get('smiles'),
+                    cas=container.get('cas'),
+                    comments=container.get('comments'),
+                    barcode=container.get('barcode'),
+                    supplier=container.get('supplier'),
+                    date_acquired=container.get('dateacquired'),
+                    owner=container.get('owner'))
+                containers.append(ct)
+            return containers
+        else:
+            return []
 
     def add_container(self):
-
         raise NotImplementedError()
 
     def move_containers(self, barcode, location_id):
@@ -96,7 +118,7 @@ class ChemInventory:
         for cupboard in cupboard_list:
             cupboard_data = self._download_cupboard_data(cupboard['id'], file_path)
             try:
-                df = df.append(cupboard_data, ignore_index=True)
+                df = df.append(cupboard_data, ignore_index=True, sort=False )
             except AttributeError:
                 df = cupboard_data
         if file_path:
