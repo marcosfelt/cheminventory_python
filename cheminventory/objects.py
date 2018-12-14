@@ -99,12 +99,12 @@ class Container:
 
     @property
     def owner(self):
-        '''Return the name of the owner of the container'''
+        '''Return the name of the person who owns the container'''
         return self._owner
 
 
 class Location:
-    def __init__(self, name, inventory_id=None, parent=None, barcode=None):
+    def __init__(self, name, inventory_id=None, parent=None, group=None, barcode=None):
         self._inventory_id = inventory_id
         self._name = name
         # if not parent or parent.isinstance(Location):
@@ -112,7 +112,14 @@ class Location:
         # else: 
         #     raise TypeError('Assigned parent must be a Location object.')
         self._parent = parent
+        self._group = group
         self._barcode = barcode
+
+    def __repr__(self):
+        return f"Location: {self.name}"
+
+    def __eq__(self, other):
+        return self.name == other.name
 
     @property
     def inventory_id(self):
@@ -136,8 +143,36 @@ class Location:
     #         raise TypeError('Assigned parent must be a Location object.')
 
     @property
+    def group(self):
+        return self._group
+
+    @property
     def barcode(self):
         return self._barcode
+
+
+class Group:
+    def __init__(self, name, inventory_id=None):
+        self._name = name
+        self._inventory_id = inventory_id
+
+    def __repr__(self):
+        return f"Group: {self.name}"
+
+    def __eq__(self, other):
+        return self.name==other.name or self.inventory_id==other.inventory_id
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def inventory_id(self):
+        return self._inventory_id
+
+
+
+
 
 
 
