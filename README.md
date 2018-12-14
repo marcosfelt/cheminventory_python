@@ -3,6 +3,7 @@ ChemInventory
 
 ![pypiBadge](https://badge.fury.io/py/cheminventory.svg)
 
+[![PyPI version](https://badge.fury.io/py/cheminventory.svg)](https://pypi.org/project/cheminventory/)
 
 An unofficial python SDK for [ChemInventory](https://www.cheminventory.net/). ChemInventory is used for keeping track of chemicals in a laboratory.
 
