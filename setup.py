@@ -18,7 +18,7 @@ setuptools.setup(
 
     packages=setuptools.find_packages(),
 
-    install_requires=['requests', 'pandas'],
+    install_requires=['requests'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
