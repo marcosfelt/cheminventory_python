@@ -1,9 +1,8 @@
 from .objects import Container, Location, Group
-import requests
-import pandas
-from contextlib import closing
-import codecs, io, json, os, sys, re
 from .utils import flatten_list
+import requests
+import json, os, re
+
 
 class ChemInventory:
     def __init__(self, email: str=None, password: str=None):

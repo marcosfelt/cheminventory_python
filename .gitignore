@@ -38,3 +38,6 @@ nosetests.xml
 
 #VSCode
 .vscode
+
+#IPython
+.ipynb_checkpoints
