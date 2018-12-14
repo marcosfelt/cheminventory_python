@@ -42,18 +42,20 @@ class ChemInventory:
         self.jwt = r['jwt']
         return r
 
-    def search(self, query: str or int, locations: list=None):
+    def search(self, query, locations: list=None):
         '''Search using the CAS number, barcode or chemical name
         '''
-        cas_number = re.search('\b[1-9]{1}[0-9]{1,5}-\d{2}-\d\b', query)
+        cas_number = re.search('\b[1-9]{1}[0-9]{1,5}-\d{2}-\d\b', str(query))
         if cas_number:
             query = cas_number[0]
-            search_type = 'cas'
-        elif query is int:
-            search_type = 'barcode'
+            search_type = 'cas'   
         else:
-            query = f"%{query}%"
-            search_type = 'name'
+            try:
+                query = int(query)
+                search_type = 'barcode'
+            except ValueError:
+                query = f"%{query}%"
+                search_type = 'name'
         if not locations:
             locations = self.get_locations(filter_to_my_group=True)
             locations = [loc.inventory_id for loc in locations]
@@ -63,14 +65,13 @@ class ChemInventory:
             'searchterm':  query,
             'limitlocations': locations.append(1)
         }
-        
         r = self._post('search-search', referer_path='search', data=data)
         
         #return a list of container objects
         if r['searchresults']['containers']:
             containers = []
             for container in r['searchresults']['containers']:
-                loc = Location(container.get('location'))
+                loc = Location(name=container.get('location'))
                 ct = Container(
                     inventory_id = container.get('id'), 
                     compound_id = container.get('sid'),

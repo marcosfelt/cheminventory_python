@@ -9,9 +9,9 @@ jupyterlab = "*"
 requests = "*"
 pandas = "*"
 
-
 [dev-packages]
 cheminventory = {editable = true, path = "."}
+pipenv-to-requirements = "*"
 
 [requires]
 python_version = "3.6"

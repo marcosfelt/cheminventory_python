@@ -5,3 +5,4 @@ __author__ = 'Kobi Felton <kobi.c.f@gmail.com>'
 __all__ = []
 
 from .api import ChemInventory
+from .objects import Container, Location

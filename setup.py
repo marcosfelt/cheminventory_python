@@ -1,4 +1,9 @@
 import setuptools
+from pipenv.project import Project
+from pipenv.utils import convert_deps_to_pip
+
+pfile = Project(chdir=False).parsed_pipfile
+requirements = convert_deps_to_pip(pfile['packages'], r=False)
 
 setuptools.setup(
     name="cheminventory",
@@ -13,7 +18,7 @@ setuptools.setup(
 
     packages=setuptools.find_packages(),
 
-    install_requires=['requests'],
+    install_requires=['requests', 'pandas'],
 
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
