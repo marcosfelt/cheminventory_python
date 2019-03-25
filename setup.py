@@ -1,20 +1,17 @@
 import setuptools
-from pipenv.project import Project
-from pipenv.utils import convert_deps_to_pip
 
-pfile = Project(chdir=False).parsed_pipfile
-requirements = convert_deps_to_pip(pfile['packages'], r=False)
 
 setuptools.setup(
     name="cheminventory",
-    version="0.1.0",
-    url="https://github.com/marcosfelt/cheminventory",
+    version="0.2.2",
+    url="https://github.com/marcosfelt/cheminventory_python",
 
     author="Kobi Felton",
     author_email="kobi.c.f@gmail.com",
 
     description="A CLI and SDK for ChemInventory",
     long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
 
     packages=setuptools.find_packages(),
 
