@@ -44,7 +44,7 @@ class ChemInventory:
     def search(self, query, locations: list=None):
         '''Search using the CAS number, barcode or chemical name
         '''
-        cas_number = re.search('\b[1-9]{1}[0-9]{1,5}-\d{2}-\d\b', str(query))
+        cas_number = re.search(r"\b[1-9]{1}[0-9]{1,5}-\d{2}-\d\b", str(query))
         if cas_number:
             query = cas_number[0]
             search_type = 'cas'   
