@@ -1,8 +1,7 @@
 ChemInventory
 =================
 
-![pypiBadge](https://badge.fury.io/py/cheminventory.svg)
-
+[![PyPI version](https://badge.fury.io/py/cheminventory.svg)](https://pypi.org/project/cheminventory/)
 
 An unofficial python SDK for [ChemInventory](https://www.cheminventory.net/). ChemInventory is used for keeping track of chemicals in a laboratory.
 
@@ -29,4 +28,4 @@ Installation
 Authors
 -------
 
-This is an unofficial cheminventory package  written by `Kobi Felton <kobi.c.f@gmail.com>`_. ChemInventory and its nmesake are not owned by me. 
+This is an unofficial cheminventory package. ChemInventory and its namesake are not owned by me. 
