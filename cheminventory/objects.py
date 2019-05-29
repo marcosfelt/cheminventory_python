@@ -42,17 +42,18 @@ class Container:
     def compound_id(self):
         '''Compound record ID'''
         return self._compound_id
-
-    @property
-    def image_url(self):
-        '''Return the URL of a PNG image of the 2D chemical structure'''
-        return f"https://s3.eu-central-1.amazonaws.com/chemicalinventory-structures-frankfurt/ID-{self.compound_id}-1.png"
                 
     @property
     def image(self):
         '''Return an image of the structure of the compound'''
-        r = requests.get(self.image_url, stream=True)
-        r.raise_for_status()
+        try:
+            image_url = f"https://s3.eu-central-1.amazonaws.com/chemicalinventory-structures-frankfurt/ID-{self.compound_id}-1.png"
+            r = requests.get(image_url, stream=True)
+            r.raise_for_status()
+        except requests.HTTPError:
+            image_url = f"https://s3.eu-central-1.amazonaws.com/chemicalinventory-structures-frankfurt/ID-{self.compound_id}.png"
+            r = requests.get(image_url, stream=True)
+            r.raise_for_status()
         return r.raw.read()
 
     @property
@@ -76,6 +77,11 @@ class Container:
     def smiles(self):
         '''Return the smiles code of  the compound'''
         return self._smiles
+
+    @property
+    def size(self):
+        '''Return the size of the container'''
+        return self._size
 
     @property
     def comments(self):
