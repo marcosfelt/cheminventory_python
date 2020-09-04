@@ -1,4 +1,4 @@
-from .objects import Container, Location, Group
+from .objects import Container, Location, Group, Compound
 from .utils import flatten_list
 import requests
 import json, os, re
@@ -55,6 +55,9 @@ class ChemInventory:
             except ValueError:
                 query = f"%{query}%"
                 search_type = 'name'
+            except TypeError: # check if query is container or compound object
+                query = query.cas
+                search_type = 'cas'
         if not locations:
             locations = self.get_locations(filter_to_my_group=True)
             locations = [loc.inventory_id for loc in locations]
@@ -66,19 +69,24 @@ class ChemInventory:
         }
         r = self._post('search-search', referer_path='search', data=data)
         
+
         #return a list of container objects
         if r['searchresults']['containers']:
             containers = []
             for container in r['searchresults']['containers']:
                 loc = Location(name=container.get('location'))
+                #split size string into number and unit list
+                reexp = re.match(r'\s*(?P<n>[-+]?[.0-9]*)\s*(?P<u>.*)', container.get('size'))
+                size = [reexp.group('n'),reexp.group('u')]
+                
                 ct = Container(
                     inventory_id = container.get('id'), 
                     compound_id = container.get('sid'),
                     name=container.get('containername'),
                     location=loc,
-                    size=container.get('size'),
                     smiles=container.get('smiles'),
                     cas=container.get('cas'),
+                    size = size,
                     comments=container.get('comments'),
                     barcode=container.get('barcode'),
                     supplier=container.get('supplier'),
@@ -86,6 +94,57 @@ class ChemInventory:
                     owner=container.get('owner'))
                 containers.append(ct)
             return containers
+        else:
+            return []
+
+    def container_info(self,query):
+        '''uses compoundinfo-getinformation to return a container and compound object
+        query can be either inventory id or container object
+        unlike search function returned container object also contains linked files'''
+        try:                    # check if query is container object
+            inventory_id = query.inventory_id
+        except:  # check if query is decimal number
+            try:
+                inventory_id = str(int(query))
+            except:
+                raise ValueError('container_info needs inventory id or container object as argument')
+            
+        data = {
+                'containerid': inventory_id,
+                'timezone': 'Europe/London',
+                'masterreload': 'false'
+        }
+        r = self._post('compoundinfo-getinformation',referer_path='search', data=data)
+        
+        #return container  and compound objects
+        if r['status']=='success':
+            container = r['results'][0] # assume that alwyas only one result returned, need to check this
+            compound = r['results'][0]['substance']
+            ct = Container(
+                    inventory_id = inventory_id, 
+                    compound_id=compound.get('id'),
+                    name=container.get('containername'),
+                    location=container.get('location'),
+                    smiles=compound.get('isomericsmiles'),
+                    cas=container.get('cas'),
+                    size=[container.get('containersize'),container.get('unit')],
+                    comments=container.get('comments'),
+                    barcode=container.get('barcode'),
+                    supplier=container.get('supplier'),
+                    date_acquired=container.get('dateacquired'),
+                    owner=container.get('createduser'),
+                    linked_files=container.get('linkedfiles'))
+            
+            cp = Compound(
+                    compound_id=compound.get('id'),
+                    names=compound.get('iupacname'),
+                    cas=compound.get('cas'),
+                    smiles=compound.get('isomericsmiles'),
+                    molecular_formula=compound.get('molecularformula'),
+                    molecular_weight=compound.get('molecularweight'),
+                    mass=compound.get('exactmass'),
+                    ghs=compound.get('ghs'))
+            return ct,cp
         else:
             return []
 

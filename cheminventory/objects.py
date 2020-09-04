@@ -5,7 +5,7 @@ class Container:
     def __init__(self, inventory_id, compound_id,
                  name, location, cas=None, smiles=None, size=None,
                  comments=None, barcode=None, supplier=None, 
-                 date_acquired=None, owner=None):
+                 date_acquired=None, owner=None, linked_files=None):
         self._inventory_id = inventory_id
         self._compound_id = compound_id
         self._name = name
@@ -22,6 +22,7 @@ class Container:
         self._supplier = supplier
         self._date_acquired = date_acquired
         self._owner = owner
+        self._linked_files = linked_files
 
     def __repr__(self):
         return f"Container {self._inventory_id}: {self._name}"
@@ -108,6 +109,10 @@ class Container:
         '''Return the name of the person who owns the container'''
         return self._owner
 
+    @property
+    def linked_files(self):
+        '''Returned files linked to container'''
+        return self._linked_files
 
 class Location:
     def __init__(self, name, inventory_id=None, parent=None, group=None, barcode=None):
@@ -177,10 +182,80 @@ class Group:
     def inventory_id(self):
         return self._inventory_id
 
+class Compound:
+    def __init__(self, compound_id,
+                 names=None, cas=None, smiles=None, 
+                 molecular_formula=None, molecular_weight=None,
+                 mass=None, ghs=None):
+        self._compound_id = compound_id
+        self._names = names
+        self._cas = cas
+        self._smiles = smiles
+        self._molecular_formula = molecular_formula
+        self._molecular_weight = molecular_weight
+        self._mass = mass
+        self._ghs = ghs
 
 
+    def __repr__(self):
+        return f"Compound {self._compound_id}: {self._names}, CAS {self._cas}"
 
+    def __eq__(self, other):
+        return isinstance(other, Compound) and self.compound_id == other.compound_id
 
+    def _repr_png_(self):
+        '''Return image for use in jupyter notebook'''
+        return self.image
 
+    @property
+    def compound_id(self):
+        '''Compound record ID'''
+        return self._compound_id
+                
+    @property
+    def names(self):
+        '''Compound IUPAC names'''
+        return self._names
 
+    @property
+    def cas(self):
+        '''Compound CAS'''
+        return self._cas
+
+    @property
+    def smiles(self):
+        '''Compound SMILES'''
+        return self._smiles
+
+    @property
+    def molecular_formula(self):
+        '''Compound molecular formula'''
+        return self._molecular_formula
     
+    @property
+    def molecular_weight(self):
+        '''Compound molecular weight'''
+        return self._molecular_weight
+
+    @property
+    def mass(self):
+        '''Compound exact mass'''
+        return self._mass
+
+    @property
+    def ghs(self):
+        '''Compound GHS record'''
+        return self._ghs
+                
+    @property
+    def image(self):
+        '''Return an image of the structure of the compound'''
+        try:
+            image_url = f"https://s3.eu-central-1.amazonaws.com/chemicalinventory-structures-frankfurt/ID-{self.compound_id}-1.png"
+            r = requests.get(image_url, stream=True)
+            r.raise_for_status()
+        except requests.HTTPError:
+            image_url = f"https://s3.eu-central-1.amazonaws.com/chemicalinventory-structures-frankfurt/ID-{self.compound_id}.png"
+            r = requests.get(image_url, stream=True)
+            r.raise_for_status()
+        return r.raw.read()
